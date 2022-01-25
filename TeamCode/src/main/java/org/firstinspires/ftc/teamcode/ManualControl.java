@@ -8,12 +8,11 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 public class ManualControl extends OpMode {
     Robot robot = new Robot();
     double EPS = 0.1;
-    double ACC = 0.1;
+    double ACC = 0.05;
     double currentPowerRunning;
     double currentPowerRotation;
-    boolean armButtonPressed = false;
-    double[] armPositions = {0, 0.5, 1};
-    int currentArmPosition = 0;
+    boolean intakeActivated = false;
+    boolean intakeButtonPressed = false;
 
     @Override
     public void init() {
@@ -22,26 +21,34 @@ public class ManualControl extends OpMode {
         robot.blMotor = hardwareMap.dcMotor.get("bl");
         robot.brMotor = hardwareMap.dcMotor.get("br");
 
-        robot.frMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        robot.brMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        robot.flMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        robot.blMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         robot.armMotor = hardwareMap.dcMotor.get("armMotor");
         robot.armServo = hardwareMap.servo.get("armServo");
         robot.intake = hardwareMap.dcMotor.get("intake");
+        robot.squishy = hardwareMap.dcMotor.get("squishy");
 
-        robot.armServo.setPosition(0);
+        //robot.armServo.setPosition(0);
     }
 
     void driveWheels() {
-        if (gamepad1.right_bumper || gamepad1.left_bumper) {
+        if (gamepad1.left_trigger > EPS || gamepad1.right_trigger > EPS || Math.abs(gamepad1.right_stick_x) > EPS) {
             currentPowerRunning = 0;
+
+            double power;
+
+            if (gamepad1.left_trigger > EPS || gamepad1.right_stick_x < -EPS)
+                power = Math.max(gamepad1.left_trigger, -gamepad1.right_stick_x);
+            else
+                power = Math.max(gamepad1.right_trigger, gamepad1.right_stick_x);
 
             if (currentPowerRotation == 0)
                 currentPowerRotation = 0.1;
-            else if (currentPowerRotation < 1)
-                currentPowerRunning = Math.min(currentPowerRunning + ACC, 1);
+            else
+                currentPowerRotation = Math.min(currentPowerRotation + ACC, power);
 
-            if (gamepad1.right_bumper)
+            if (gamepad1.left_trigger > EPS || gamepad1.right_stick_x < -EPS)
                 robot.drive(-1, 1, -1, 1, currentPowerRotation);
             else
                 robot.drive(1, -1, 1, -1, currentPowerRotation);
@@ -95,39 +102,43 @@ public class ManualControl extends OpMode {
     }
 
     void controlArm() {
-        if (gamepad1.dpad_up)
-            robot.setArmPower(-0.5);
-        else if (gamepad1.dpad_down)
-            robot.setArmPower(0.5);
+        if (gamepad2.right_trigger > EPS)
+            robot.setArmPower(-robot.map(gamepad2.right_trigger, 0.1, 1, 0.1, 0.7));
+        else if (gamepad2.left_trigger > EPS)
+            robot.setArmPower(robot.map(gamepad2.left_trigger, 0.1, 1, 0.1, 0.7));
+        else if (gamepad2.dpad_up)
+            robot.setArmPower(-0.7);
+        else if (gamepad2.dpad_down)
+            robot.setArmPower(+0.7);
         else
             robot.setArmPower(0);
 
-        if (gamepad1.a) {
-            if (!armButtonPressed) {
-                armButtonPressed = true;
-
-                currentArmPosition++;
-                if (currentArmPosition >= 3)
-                    currentArmPosition = 0;
-
-                robot.armServo.setPosition(armPositions[currentArmPosition]);
-            }
-        } else
-            armButtonPressed = false;
+        if (gamepad2.y)
+            robot.armServo.setPosition(1);
+        else if (gamepad2.a)
+            robot.armServo.setPosition(0);
     }
 
     void controlIntake() {
-        if (gamepad1.x)
-            robot.setIntakePower(0.5);
+        if (gamepad2.x && !intakeButtonPressed) {
+            intakeButtonPressed = true;
+            intakeActivated = !intakeActivated;
+        } else if (!gamepad2.x && intakeButtonPressed)
+            intakeButtonPressed = false;
+
+        if (intakeActivated)
+            robot.setIntakePower(-0.7);
+        else if (gamepad2.b)
+            robot.setIntakePower(0.7);
         else
             robot.setIntakePower(0);
     }
 
     void controlSquishy() {
-        if (gamepad1.right_trigger > EPS)
-            robot.setSquishyPower(-0.5);
-        else if (gamepad1.left_trigger > EPS)
-            robot.setSquishyPower(0.5);
+        if (gamepad2.right_bumper)
+            robot.setSquishyPower(-0.6);
+        else if (gamepad2.left_bumper)
+            robot.setSquishyPower(0.6);
         else
             robot.setSquishyPower(0);
     }

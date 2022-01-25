@@ -26,7 +26,6 @@ public class Robot {
      * @param power      the power to give to all four wheels [0,1]
      */
     void drive(double frontLeft, double frontRight, double backLeft, double backRight, double power) {
-
         flMotor.setPower(frontLeft * power);
         frMotor.setPower(frontRight * power);
         blMotor.setPower(backLeft * power);
