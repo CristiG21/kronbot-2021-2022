@@ -1,18 +1,26 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+
+import org.firstinspires.ftc.teamcode.RobotTest;
+
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
+import java.util.Objects;
+
 @TeleOp(name = "ManualControl")
 public class ManualControl extends OpMode {
-    Robot robot = new Robot();
+    RobotTest robot = new RobotTest();
     double EPS = 0.1;
     double ACC = 0.05;
     double currentPowerRunning;
     double currentPowerRotation;
     boolean intakeActivated = false;
     boolean intakeButtonPressed = false;
+
+    boolean ruletaActivated = false;
+    boolean ruletaButtonPressed = false;
 
     @Override
     public void init() {
@@ -24,12 +32,17 @@ public class ManualControl extends OpMode {
         robot.flMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         robot.blMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        robot.armMotor = hardwareMap.dcMotor.get("armMotor");
-        robot.armServo = hardwareMap.servo.get("armServo");
+        robot.arm = hardwareMap.servo.get("arm");
+        robot.cupa = hardwareMap.servo.get("cupa");
         robot.intake = hardwareMap.dcMotor.get("intake");
-        robot.squishy = hardwareMap.dcMotor.get("squishy");
+        robot.intakeSlide = hardwareMap.crservo.get("intakeSlide");
 
-        //robot.armServo.setPosition(0);
+        robot.intake.setDirection(DcMotorSimple.Direction.FORWARD);
+        robot.intakeSlide.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        robot.squishy = hardwareMap.dcMotor.get("squishy");
+        robot.ruleta = hardwareMap.crservo.get("ruleta");
+        robot.ruleta.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
     void driveWheels() {
@@ -102,21 +115,15 @@ public class ManualControl extends OpMode {
     }
 
     void controlArm() {
-        if (gamepad2.right_trigger > EPS)
-            robot.setArmPower(-robot.map(gamepad2.right_trigger, 0.1, 1, 0.1, 0.7));
-        else if (gamepad2.left_trigger > EPS)
-            robot.setArmPower(robot.map(gamepad2.left_trigger, 0.1, 1, 0.1, 0.7));
+        if (gamepad2.dpad_down)
+            robot.arm.setPosition(1);
         else if (gamepad2.dpad_up)
-            robot.setArmPower(-0.7);
-        else if (gamepad2.dpad_down)
-            robot.setArmPower(+0.7);
-        else
-            robot.setArmPower(0);
+            robot.arm.setPosition(0.47);
 
-        if (gamepad2.y)
-            robot.armServo.setPosition(1);
-        else if (gamepad2.a)
-            robot.armServo.setPosition(0);
+        if(gamepad2.dpad_left)
+            robot.cupa.setPosition(0);
+        else if(gamepad2.dpad_right)
+            robot.cupa.setPosition(1);
     }
 
     void controlIntake() {
@@ -127,20 +134,43 @@ public class ManualControl extends OpMode {
             intakeButtonPressed = false;
 
         if (intakeActivated)
-            robot.setIntakePower(-0.7);
+            robot.intake.setPower(1);
         else if (gamepad2.b)
-            robot.setIntakePower(0.7);
+            robot.intake.setPower(-1);
         else
-            robot.setIntakePower(0);
+            robot.intake.setPower(0);
+    }
+
+    void controlIntakeSlide() {
+        if (gamepad2.left_trigger > EPS)
+            robot.intakeSlide.setPower(-gamepad2.left_trigger);
+        else if (gamepad2.right_trigger > EPS)
+            robot.intakeSlide.setPower(gamepad2.right_trigger);
+        else
+            robot.intakeSlide.setPower(0);
     }
 
     void controlSquishy() {
         if (gamepad2.right_bumper)
-            robot.setSquishyPower(-0.6);
+            robot.setSquishyPower(-0.8);
         else if (gamepad2.left_bumper)
-            robot.setSquishyPower(0.6);
+            robot.setSquishyPower(0.8);
         else
             robot.setSquishyPower(0);
+    }
+
+    void controlRuleta(){
+        if (gamepad1.x && !ruletaButtonPressed) {
+            ruletaButtonPressed = true;
+            ruletaActivated = !ruletaActivated;
+
+            if(ruletaActivated)
+                robot.ruleta.setPower(1);
+            else
+                robot.ruleta.setPower(0);
+        } else if (!gamepad1.x && ruletaButtonPressed)
+            ruletaButtonPressed = false;
+
     }
 
     @Override
@@ -148,6 +178,8 @@ public class ManualControl extends OpMode {
         driveWheels();
         controlArm();
         controlIntake();
+        controlIntakeSlide();
         controlSquishy();
+        controlRuleta();
     }
 }

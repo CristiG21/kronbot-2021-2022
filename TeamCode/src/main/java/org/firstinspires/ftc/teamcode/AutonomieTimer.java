@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.robot.Robot;
+import org.firstinspires.ftc.teamcode.RobotTest;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -9,7 +11,7 @@ import static java.lang.StrictMath.max;
 
 @Autonomous(name = "Autonomie Timer")
 public class AutonomieTimer extends LinearOpMode {
-    Robot Robot = new Robot();
+    RobotTest Robot = new RobotTest();
     ElapsedTime timer = new ElapsedTime();
     double acc = 0.55;
     double speed = 0.80;
@@ -19,7 +21,7 @@ public class AutonomieTimer extends LinearOpMode {
         initHardwareMap();
         waitForStart();
 
-        Robot.setArmPower(-0.6);
+        Robot.arm.setPower(-0.6);
         timer.reset();
         while (timer.seconds() < 1 && opModeIsActive()) ;
         Robot.setArmPower(0);
@@ -33,28 +35,30 @@ public class AutonomieTimer extends LinearOpMode {
         if (!opModeIsActive())
             return;
 
-        DriveAcc(-1, -1, -1, -1, speed, 0.32, acc, 0.02);
+        DriveAcc(-1, -1, -1, -1, speed, 0.30, acc, 0.02);
 
-        Robot.setSquishyPower(-0.5);
+        Robot.setSquishyPower(-0.8);
 
         timer.reset();
-        while (timer.seconds() < 5.5 && opModeIsActive()) ;
+        while (timer.seconds() < 7 && opModeIsActive()) ;
         Robot.setSquishyPower(0);
         if (!opModeIsActive())
             return;
 
-        DriveAcc(-1, 1, 1, -1, speed, 1.5, acc, 0.02);
+        DriveAcc(-1, 1, 1, -1, speed, 1.7, acc, 0.02);
+
+        DriveAcc(-1, 1, -1, 1, speed, 0.14, acc, 0.02);
 
         timer.reset();
         while (timer.seconds() < 0.5 && opModeIsActive()) ;
         if (!opModeIsActive())
             return;
 
-        DriveAcc(1, 1, 1, 1, speed, 1, acc, 0.02);
+        DriveAcc(1, 1, 1, 1, speed, 1.45, acc, 0.02);
 
         Robot.setArmPower(-0.6);
         timer.reset();
-        while (timer.seconds() < 2.4 && opModeIsActive()) ;
+        while (timer.seconds() < 2.5 && opModeIsActive()) ;
         Robot.setArmPower(0);
         if (!opModeIsActive())
             return;
@@ -67,7 +71,7 @@ public class AutonomieTimer extends LinearOpMode {
 
         Robot.setArmPower(0.6);
         timer.reset();
-        while (timer.seconds() < 0.8 && opModeIsActive()) ;
+        while (timer.seconds() < 1.8 && opModeIsActive()) ;
         Robot.setArmPower(0);
         if (!opModeIsActive())
             return;
